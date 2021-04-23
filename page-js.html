@@ -1,0 +1,16 @@
+<script>
+  let authLink = document.getElementById("auth");
+  let button2 = document.getElementById("btn2");
+  google.script.run.withSuccessHandler(callback).showSidebar();
+
+  button2.addEventListener("click", () => {
+    google.script.run.withSuccessHandler(callback2).makeRequest();
+  })
+  
+  function callback(link) {
+    authLink.href = link;
+  }
+  function callback2() {
+    console.log("Success");
+  }
+</script>
