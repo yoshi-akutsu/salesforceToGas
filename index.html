@@ -5,8 +5,61 @@
     <?!= include("page-css"); ?>
   </head>
   <body>
-    <a id="auth" href="" target="_blank">Authorize</a>
-    <button id="btn2">Click Me</button>
+    <div class="header">
+      <img src="https://lh3.googleusercontent.com/XAv42v7Xsgu_24vDoCpdDfSVsCkb-Izmx7UjjqPgzoTYbN4ZMhbXfNbi-PVc3KyzI7ZoStL9mzB0e-TINg4foPvID73OqMoINFkKYKc3_JNNFlzJL4kVdXGBNNNEjiEN5ZN9DVFj3g=w600-h315-p-k" />
+      <br>
+      <div id="authenticate">
+        <h3>Click here to authorize this app with Salesforce.</h3>
+        <a id="auth" href="" target="_blank">Authorize</a>
+      <br>
+      </div>
+    </div>
+    <div class="searchBox">
+      <input type="text" id="searchTerm"></input>
+      <button id="searchButton" onClick="showSpinner()">Search</button>
+    </div>
+
+    <div class="container"> 
+      <div id="loading" class="loading" onClick="hideSpinner()">Loading&#8230;</div>
+    </div>
+
+    <div id="resultBox"></div>
+    <div id="studentInfo" style="display: none">
+      <p>Name: </p>
+      <p>ACT: </p>
+      <p>W. GPA: </p>
+      <p>GPA: </p>
+      <p>SAT: </p>
+      <p>Superscored ACT: </p>
+
+    </div>
+    <table id="applications" style="width:100%">
+      <tr>
+        <th>School Name</th>
+        <th>Due Date</th>
+        <th>Submitted?</th>
+        <th>Application Type</th>
+        <th>Common App Essay Completed?</th>
+        <th>Supplemental Essays Completed?</th>
+        <th>Testing Sent</th>        
+        <th>Transcripts Sent?</th>
+        <th>LORs Sent?</th>
+        <th>FAFSA Sent?</th>
+        <th>CSS Sent?</th>
+        <th>Portfolio Sent?</th>
+        <th>Portfolio Link</th>          
+        <th>Result</th>
+      </tr>
+      <tr>
+        <td id="plus"><button>New Application</button></td>
+      </tr>
+    </table>
+    <div id="schoolSearch" style="display:none">
+      <input id="schoolName" type="text"></input>
+      <button id="findSchool">Find School</button>
+    </div>
+    <div id="schoolResults"></div>
+    <button id="push" style="display:none">Push to Salesforce</button>
     <?!= include("page-js"); ?>
   </body>
 </html>
