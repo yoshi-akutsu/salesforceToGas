@@ -12,6 +12,8 @@
   let schoolSearchButton = document.getElementById("findSchool");
   let schoolResults = document.getElementById("schoolResults");
   let pushToSalesforce = document.getElementById("push");
+  let loadingDiv = document.getElementById('loading');
+  let backButton = document.getElementById('back');
   let contactArray = [];
   let applicationTable = [];
   let selected;
@@ -24,7 +26,6 @@
   searchButton.addEventListener("click", () => {
     killTheKids(resultBox);
     let searchTerm = searchBar.value;
-    console.log(searchTerm);
     google.script.run.withSuccessHandler(printResults).makeRequest(searchTerm, "search", "Contact");
   })
   
@@ -34,8 +35,25 @@
     plus.style.display = "none";
   })
 
+  backButton.addEventListener("click", () => {
+    backButton.style.display = "none";
+    contactArray = [];
+    applicationTable = [];
+    document.querySelectorAll(".dataRow").forEach(row => {
+      row.parentNode.removeChild(row);
+    })
+
+    killTheKids(schoolResults);
+    killTheKids(resultBox);
+    searchBar.value = "";
+    searchBox.style.display = "block";
+    table.style.display = "none";
+    pushToSalesforce.style.display = "none";
+  })
+
   // Calls GAS to send an API request to SF
   schoolSearchButton.addEventListener("click", () => {
+    killTheKids(schoolResults);
     schoolResults.style.display = "block";
     let schoolSearchTerm = schoolToSearch.value;
     schoolToSearch.value = "";
@@ -49,6 +67,7 @@
     updateApplicationTable();
   })
 
+  // Updates data representation of the application table, then pushes it to the backend for updates
   function updateApplicationTable() {
     console.log(applicationTable);
     for (let i = 0; i < table.rows.length - 2; i++) {
@@ -100,14 +119,17 @@
       applicationTable[i][14] = appType.value;
     }
     console.log(applicationTable);
+    showSpinner();
     google.script.run.withSuccessHandler(confirmSubmission).pushToSalesforce(applicationTable, contactArray[selected]);
   }
 
-function confirmSubmission(table) {
-  applicationTable = table;
-  console.log(applicationTable);
-}
+  function confirmSubmission(table) {
+    hideSpinner();
+    applicationTable = table;
+    
+  }
 
+  // Converts checkboxes to a string separated by semi-colons
   function handleTesting(act, sat, testOptional, actWriting) {
     let string = ""
     if (act == true) {
@@ -128,7 +150,6 @@ function confirmSubmission(table) {
       else {
         string += "Test Optional";
       }
-
     }
     if (actWriting == true) {
       if (string.length > 0) {
@@ -162,7 +183,6 @@ function confirmSubmission(table) {
         schoolResults.style.display = "none"
         newSchoolSearchBox.style.display = "none";
         newApplicationButton.style.display = "block";
-
       })
     })
   }
@@ -201,19 +221,29 @@ function confirmSubmission(table) {
   }
 
   function getAdvisor(id) {
+    let name;
     switch (id) {
-      case id == "": 
+      case id = "0033h00000BTu8XAAT": 
         return "Yoshi Akutsu";
-      case id == "": 
-        return "";
-      case id == "": 
-        return "";
-      case id == "": 
-        return "";
-      case id == "": 
-        return "";
-      case id == "": 
-        return "";
+      case id = "0033h00000BTu8YAAT": 
+        return "Juleanna Smith";
+      case id = "0033h00000EuKDwAAN": 
+        return "Sam Rubinoski";
+      case id = "0033h00000BTuB2AAL": 
+        return "Emma Mote";
+      case id = "0033h00000CnQ8UAAV": 
+        return "Hannah Laubach";
+      case id = "0033h00000Eua7pAAB": 
+        return "Siân Lewis";
+      case id = "0033h00000EuKEtAAN": 
+        return "Alecea Howell";
+      case id = "0033h00000EuKDiAAN": 
+        return "Eric Martinez";
+      case id = "0033h00000EuKDxAAN": 
+        return "Reilly Grealis";
+      // ADD NEW ADVISORS HERE
+      //case id == "": 
+        //return "";
     }
   }
 
@@ -240,17 +270,19 @@ function confirmSubmission(table) {
   }
 
   function printTable(array, rowOption) {
+    backButton.style.display = "block";
     let contact = contactArray[selected];
     let i = 0;
     if (rowOption == "row") {
         i = array.length - 1;
       } 
     for (i; i < array.length; i++) {
-      console.log(array[i]);
       let newRow = table.insertRow(i + 1);
+      newRow.classList.add("dataRow");
 
       let cell1 = newRow.insertCell(-1);
-      cell1.innerHTML = array[i][15];
+      cell1.outerHTML = "<th>" + array[i][15] + "</th>";
+      cell1.setAttribute("scope", "row")
 
       let cell2 = newRow.insertCell(-1);
       let child2 = document.createElement("input");
@@ -306,8 +338,14 @@ function confirmSubmission(table) {
       let cell4 = newRow.insertCell(-1);
       let child4 = document.createElement("input");
       child4.type = "checkbox";
-      child4.checked = array[i][4]
+      if (i > 0) {
+        child4.checked = document.getElementById("commonApp0").checked;
+      }
+      else {
+        child4.checked = array[i][4];
+      }
       child4.id = "commonApp" + i;
+      child4.classList.add("commonAppBox")
       cell4.appendChild(child4);
 
       let cell5 = newRow.insertCell(-1);
@@ -403,6 +441,11 @@ function confirmSubmission(table) {
       let cell13 = newRow.insertCell(-1);
       let child13 = document.createElement("select");
 
+      let option0 = document.createElement("option");
+      option0.value = "";
+      option0.text = "";
+      child13.appendChild(option0);
+
       let option1 = document.createElement("option");
       option1.value = "Accepted";
       option1.text = "Accepted";
@@ -448,6 +491,22 @@ function confirmSubmission(table) {
       cell13.appendChild(child13);
     }
     push.style.display = "block";
+    // Checks all CA boxes or unchecks them all together
+    let commonAppBoxes = document.querySelectorAll(".commonAppBox");
+    commonAppBoxes.forEach(box => {
+      box.addEventListener("change", ()=> {
+        if (box.checked == true) {
+          for (let j = 0; j < commonAppBoxes.length; j++) {
+            commonAppBoxes[j].checked = true;
+          }
+        }
+        else {
+          for (let j = 0; j < commonAppBoxes.length; j++) {
+            commonAppBoxes[j].checked = false;
+          }
+        }
+      })
+    })
   }
 
   function killTheKids(div){
@@ -475,14 +534,16 @@ function confirmSubmission(table) {
     contactOption.appendChild(classYearItem);  
 
     let advisorItem = document.createElement("p");
-    let advisorItemNode = document.createTextNode("Advisor: " + getAdvisor(advisorId));
+    let advisorName = getAdvisor(advisorId);
+    console.log(advisorName);
+    let advisorItemNode = document.createTextNode("Advisor: " + advisorName);
     advisorItem.appendChild(advisorItemNode);
     contactOption.appendChild(advisorItem);
 
     resultBox.appendChild(contactOption)
   }
 
-  // Placeholder function
+  // Prints out the contact results from the contact search
   function printResults(json) {
     hideSpinner();
     for (let i = 0; i < json.length; i++) {   
@@ -491,13 +552,11 @@ function confirmSubmission(table) {
     activateOptions();
   }
 
-var loadingDiv = document.getElementById('loading');
+  function showSpinner() {
+    loadingDiv.style.visibility = 'visible';
+  }
 
-function showSpinner() {
-  loadingDiv.style.visibility = 'visible';
-}
-
-function hideSpinner() {
-  loadingDiv.style.visibility = 'hidden';
-}
+  function hideSpinner() {
+    loadingDiv.style.visibility = 'hidden';
+  }
 </script>
