@@ -1,50 +1,30 @@
-// URL Encodes spaces as %20 for use in API calls
-function removeSpaces(text) {
-  let letters = text.split("");
-  for (let i = 0; i < letters.length; i++) {
-    if (letters[i] == " ") {
-      letters[i] = "%20";
-    }
-  }
-  return letters.join("");
-}
-
 // Makes requests to the Salesforce REST API based on criteria
 function makeRequest(searchTerm, searchType, object, recordTypeId) {
-  var salesforceService = getSalesforceService();
+  let salesforceService = getSalesforceService();
 
-  let orgBase = "https://ORGBASE.my.salesforce.com/";
+  let orgBase = "https://ORG_NAME.my.salesforce.com/";
+  // Gets API call url
   let url;
-
   if (searchType == "search") {
-    url = "https://ORGBASE.my.salesforce.com/services/data/v51.0/parameterizedSearch/?q=" + removeSpaces(searchTerm) + "&sobject=" + object;
+    url = "ORG_NAME.my.salesforce.com/services/data/v51.0/parameterizedSearch/?q=" + removeSpaces(searchTerm) + "&sobject=" + object;
     if (recordTypeId) {
       url += "&" + object + ".where=RecordTypeId='" + recordTypeId + "'";
     } 
   }
   else if (searchType == "applications") {
     // SELECT Id, Student__c FROM Application__c WHERE Student__c = '0033h00000DtC43AAF'
-    url = "https://ORGBASE.my.salesforce.com/services/data/v51.0/query/?q=select+id,+student__c,+Application_Type__c,+CSS_Profile_Sent__c,+Due_Date__c,+FAFSA_Sent__c,+Institution__c,+LOR_Sent__c,+Outcome__c,+Portfolio_Instructions__c,+Portfolio_Sent__c,+Program__c,+Submitted__c,+Supplemental_Essays_Completed__c,+Testing_Sent__c,+Transcripts_Sent__c,+Institution__r.Name+from+application__c+where+student__c+=+" + "'" + searchTerm + "'"; 
+    url = "https://ORG_NAME.my.salesforce.com/services/data/v51.0/query/?q=select+id,+student__c,+Application_Type__c,+CSS_Profile_Sent__c,+Due_Date__c,+FAFSA_Sent__c,+Institution__c,+LOR_Sent__c,+Outcome__c,+Portfolio_Instructions__c,+Portfolio_Sent__c,+Program__c,+Submitted__c,+Supplemental_Essays_Completed__c,+Testing_Sent__c,+Transcripts_Sent__c,+Institution__r.Name+from+application__c+where+student__c+=+" + "'" + searchTerm + "'"; 
   }
   else {
-    url = "https://ORGBASE.my.salesforce.com/services/data/v51.0/sobjects/"  + searchType + "/" + searchTerm;
+    url = "https://ORG_NAME.my.salesforce.com/services/data/v51.0/sobjects/"  + searchType + "/" + searchTerm;
   }
+  Logger.log(url);  
 
-  Logger.log(url);
-  try {
-    var response = UrlFetchApp.fetch(url, {
+  let response = UrlFetchApp.fetch(url, {
     headers: {
       Authorization: 'Bearer ' + salesforceService.getAccessToken()
     }
-    });
-  } catch (error) {
-    Logger.log(error)
-    var response = UrlFetchApp.fetch(url, {
-    headers: {
-      Authorization: 'Bearer ' + salesforceService.getAccessToken()
-    }
-    });
-  }
+  });
   
   let json = JSON.parse(response);
   Logger.log(json);
@@ -85,17 +65,17 @@ function makeRequest(searchTerm, searchType, object, recordTypeId) {
       //15               result.records[i].Institution__r.Name]
 
 function pushToSalesforce(applicationTable, contact) {
-  var salesforceService = getSalesforceService();
-  Logger.log(contact);
+  let salesforceService = getSalesforceService();
   for (let i = 0; i < applicationTable.length; i++) {
     let payload = {};
-    // payload.Id = applicationTable[i][0];
     payload.Student__c = contact.Id;
     payload.Institution__c = applicationTable[i][1];
-    // *******************************************
-    // EMPTY DATE BREAKS THIS
-    // *******************************************
-    payload.Due_Date__c = applicationTable[i][2];
+
+    // Adding new records to Salesforce doesn't accept "" for dates
+    if (applicationTable[i][2] == "") {}
+    else {
+      payload.Due_Date__c = applicationTable[i][2];
+    }
     payload.Submitted__c = applicationTable[i][3];
     // payload.Completed_Common_App_Essay__c = applicationTable[i][4];
     payload.Supplemental_Essays_Completed__c = applicationTable[i][5];
@@ -108,11 +88,13 @@ function pushToSalesforce(applicationTable, contact) {
     payload.Portfolio_Instructions__c = applicationTable[i][12];
     payload.Outcome__c = applicationTable[i][13];
     payload.Application_Type__c = applicationTable[i][14];
+    payload.Program__c = applicationTable[i][16];
 
-    let url = "https://ORGBASE.my.salesforce.com/services/data/v51.0/sobjects/Application__c/" + applicationTable[i][0];
+    let url = "https://ORG_NAME.my.salesforce.com/services/data/v51.0/sobjects/Application__c/" + applicationTable[i][0];
 
+    // Adds new records or updates depending on if an id exists for the application or nor
     if (applicationTable[i][0] == "") {
-      var response = UrlFetchApp.fetch(url, {
+      let response = UrlFetchApp.fetch(url, {
       'method' : 'post',
       'contentType': 'application/json',
       'payload' : JSON.stringify(payload),
@@ -123,26 +105,69 @@ function pushToSalesforce(applicationTable, contact) {
       applicationTable[i][0] = response["id"];
     }
     else {
-      var response = UrlFetchApp.fetch(url, {
+      let response = UrlFetchApp.fetch(url, {
       'method' : 'patch',
       'contentType': 'application/json',
       'payload' : JSON.stringify(payload),
       headers: {
         Authorization: 'Bearer ' + salesforceService.getAccessToken()},
       })
-      // Not getting id -- coming in null on the front end
     }
-    
   }
+  if (applicationTable[0][4] == true) {
+    let url = "https://ORG_NAME.my.salesforce.com/services/data/v51.0/sobjects/Contact/" + contact.Id;
+    Logger.log(contact);
+    let contactPayload = {};
+    contactPayload.Completed_Common_App_Essay__c = true;
+    // Add test scores & GPA
+
+    let response = UrlFetchApp.fetch(url, {
+      'method' : 'patch',
+      'contentType': 'application/json',
+      'payload' : JSON.stringify(contactPayload),
+      headers: {
+        Authorization: 'Bearer ' + salesforceService.getAccessToken()},
+      })
+  }
+  let url = "https://ORG_NAME.my.salesforce.com/services/data/v51.0/sobjects/Contact/" + contact.Id;
+  Logger.log(contact);
+  let contactPayload = {};
+
+  if (applicationTable[0][4] == true) {
+    contactPayload.Completed_Common_App_Essay__c = true;
+  }
+  if (contact.ACT__c.length > 0){
+    contactPayload.ACT__c = contact.ACT__c;
+  }
+  if (contact.Super_ACT__c.length > 0) {
+    contactPayload.Super_ACT__c = contact.Super_ACT__c;
+  }
+  if (contact.SAT__c.length > 0) {
+    contactPayload.SAT__c = contact.SAT__c;
+  }
+  if (contact.Weighted_GPA__c.length > 0) {
+    contactPayload.Weighted_GPA__c = contact.Weighted_GPA__c;
+  }
+  if (contact.GPA__c.length > 0) {
+    contactPayload.GPA__c = contact.GPA__c;
+  }
+
+  let contactResponse = UrlFetchApp.fetch(url, {
+    'method' : 'patch',
+    'contentType': 'application/json',
+    'payload' : JSON.stringify(contactPayload),
+    headers: {
+        Authorization: 'Bearer ' + salesforceService.getAccessToken()},
+    })
   return applicationTable;
 }
 
 function getSchoolName(table, row) {
-  var salesforceService = getSalesforceService();
+  let salesforceService = getSalesforceService();
   for (let i = 0; i < table.length; i++) {
     let id = table[i][1];
-    let url = "https://ORGBASE.my.salesforce.com/services/data/v51.0/query/?q=select+name+from+account+where+id+=+" + "'" + id + "'";
-    var response = UrlFetchApp.fetch(url, {
+    let url = "https://ORG_NAME.my.salesforce.com/services/data/v51.0/query/?q=select+name+from+account+where+id+=+" + "'" + id + "'";
+    let response = UrlFetchApp.fetch(url, {
       headers: {
         Authorization: 'Bearer ' + salesforceService.getAccessToken()}
       })
@@ -151,6 +176,18 @@ function getSchoolName(table, row) {
   }
   return table, row;
 }
+
+// URL Encodes spaces as %20 for use in API calls
+function removeSpaces(text) {
+  let letters = text.split("");
+  for (let i = 0; i < letters.length; i++) {
+    if (letters[i] == " ") {
+      letters[i] = "%20";
+    }
+  }
+  return letters.join("");
+}
+
 
 function getSalesforceService() {
   // Create a new service with the given name. The name will be used when
@@ -178,7 +215,7 @@ function getSalesforceService() {
 
       // Sets the login hint, which will prevent the account chooser screen
       // from being shown to users logged in with multiple accounts.
-      .setParam('login_hint', Session.getEffectiveUser().getEmail())
+      //.setParam('login_hint', Session.getEffectiveUser().getEmail())
 
       // Requests offline access.
       .setParam('access_type', 'offline-access')
@@ -187,20 +224,18 @@ function getSalesforceService() {
       // returned when requesting offline access.
       .setParam('prompt', 'consent')
 
-      // Persists access token
-      .setPropertyStore(PropertiesService.getUserProperties())
-
       .setCache(CacheService.getUserCache());
 }
 
 function showSidebar() {
   let salesforceService = getSalesforceService();
-  if (salesforceService.hasAccess()) {
+  if (!salesforceService.hasAccess()) {
     let authorizationUrl = salesforceService.getAuthorizationUrl();
-    Logger.log(authorizationUrl);
     return authorizationUrl;
-  } else {
-    return "https://script.google.com/a/macros/collegeliftoff.org/s/AKfycbyFgOolppmYIgTMzNzeJ1VKSzXGWl3D_-JydWIzYN4/dev";
+  } 
+  else {
+    let authorizationUrl = salesforceService.getAuthorizationUrl();
+    return authorizationUrl;
   }
 }
 

@@ -1,4 +1,10 @@
 <script>
+  // Breaks when searching for school with blank query
+  // Need to target search box for school upon clicking add school
+  // Implement delete button
+  // Implement student summary box
+  // Add data heard back from schools to SF
+  
   let authLink = document.getElementById("auth");
   let authDiv = document.getElementById("authenticate");
   let searchButton = document.getElementById("searchButton");
@@ -12,6 +18,7 @@
   let schoolSearchButton = document.getElementById("findSchool");
   let schoolResults = document.getElementById("schoolResults");
   let pushToSalesforce = document.getElementById("push");
+  let studentInfoBox = document.getElementById("studentInfo");
   let loadingDiv = document.getElementById('loading');
   let backButton = document.getElementById('back');
   let contactArray = [];
@@ -46,6 +53,7 @@
     killTheKids(schoolResults);
     killTheKids(resultBox);
     searchBar.value = "";
+    studentInfoBox.style.display = "none";
     searchBox.style.display = "block";
     table.style.display = "none";
     pushToSalesforce.style.display = "none";
@@ -63,24 +71,33 @@
 
   // Pushes data to Salesforce
   push.addEventListener("click", () => {
-    console.log("clicked push")
     updateApplicationTable();
   })
 
+  function updateContactArray() {
+    contactArray[selected].ACT__c = document.getElementById("actScore").value;
+    contactArray[selected].Super_ACT__c = document.getElementById("actSuperScore").value;    
+    contactArray[selected].SAT__c = document.getElementById("satScore").value;
+    contactArray[selected].GPA__c = document.getElementById("gpa").value;
+    contactArray[selected].Weighted_GPA__c = document.getElementById("wGpa").value;
+  }
+
   // Updates data representation of the application table, then pushes it to the backend for updates
   function updateApplicationTable() {
-    console.log(applicationTable);
     for (let i = 0; i < table.rows.length - 2; i++) {
       let dueDate = document.getElementById("dueDate" + i);
       let submitted = document.getElementById("submitted" + i);
       let appType = document.getElementById("appType" + i);
+      
+      let program = document.getElementById("program" + i);
+      
       let commonApp = document.getElementById("commonApp" + i);
       let supplementals = document.getElementById("supplementals" + i);
       let testing = document.getElementById("testing" + i);
       let act = document.getElementById("act" + i);
       let sat = document.getElementById("sat" + i);
       let testOptional = document.getElementById("testOptional" + i);
-      let actWriting = document.getElementById("testOptional" + i);
+      let actWriting = document.getElementById("actWriting" + i);
       let transcripts = document.getElementById("transcripts" + i);
       let letters = document.getElementById("letters" + i);
       let fafsa = document.getElementById("fafsa" + i);
@@ -117,9 +134,11 @@
       applicationTable[i][12] = link.value;
       applicationTable[i][13] = result.value;
       applicationTable[i][14] = appType.value;
+      applicationTable[i][16] = program.value;
     }
-    console.log(applicationTable);
+    updateContactArray()
     showSpinner();
+    console.log(contactArray[selected]);
     google.script.run.withSuccessHandler(confirmSubmission).pushToSalesforce(applicationTable, contactArray[selected]);
   }
 
@@ -164,7 +183,6 @@
 
   function printSchoolResults(schools) {
     hideSpinner();
-    console.log(schools);
     // Add schools to school results and add event listener to all to use as options to create a new application from
     for (let i = 0; i < schools.length; i++) {
       let name = schools[i].Name;
@@ -177,9 +195,10 @@
     let resultsList = document.querySelectorAll(".schoolItem").forEach(school => {
       school.addEventListener("click", () => {
         killTheKids(school);
-        applicationTable.push(["",school.id,"","","","","","","","","","","","", "", school.getAttribute("name")]);
+        applicationTable.push(["",school.id,"","","","","","","","","","","","", "", school.getAttribute("name"), ""]);
         killTheKids(schoolResults);
         printTable(applicationTable, "row")
+        studentInfoBox.style.display = "block";
         schoolResults.style.display = "none"
         newSchoolSearchBox.style.display = "none";
         newApplicationButton.style.display = "block";
@@ -188,8 +207,6 @@
   }
 
   function printSchool(name, website, city, state, id) {
-    console.log(name, website, city, state);
-
     let div = document.createElement("div");
     div.classList.add("schoolItem");
     div.id = id;
@@ -252,26 +269,56 @@
     results.forEach(result => result.addEventListener("click", () => {
       killTheKids(resultBox);
       searchBox.style.display = "none";
-      table.style.display = "block";
       selected = result.getAttribute("position");
       google.script.run.withSuccessHandler(formTableData).makeRequest(result.id, "applications");
       showSpinner();
+      table.style.display = "block";
     }))
   }
+
+  function checkNull(item) {
+    if (item == null) {
+      return "";
+    }
+    else {
+      return item;
+    }
+  }
+
+
 
   function formTableData(result) {
     hideSpinner();
     let contact = contactArray[selected];
     for (let i = 0; i < result.records.length; i++) {
       applicationTable.push(
-        [result.records[i].Id, result.records[i].Institution__c, result.records[i].Due_Date__c, result.records[i].Submitted__c, contactArray[selected].Completed_Common_App_Essay__c, result.records[i].Supplemental_Essays_Completed__c, result.records[i].Testing_Sent__c, result.records[i].Transcripts_Sent__c, result.records[i].LOR_Sent__c, result.records[i].FAFSA_Sent__c, result.records[i].CSS_Profile_Sent__c, result.records[i].Portfolio_Sent__c, result.records[i].Portfolio_Instructions__c, result.records[i].Outcome__c, result.records[i].Application_Type__c, result.records[i].Institution__r.Name]);
+        [result.records[i].Id, result.records[i].Institution__c, result.records[i].Due_Date__c, result.records[i].Submitted__c, contactArray[selected].Completed_Common_App_Essay__c, result.records[i].Supplemental_Essays_Completed__c, checkNull(result.records[i].Testing_Sent__c), result.records[i].Transcripts_Sent__c, result.records[i].LOR_Sent__c, result.records[i].FAFSA_Sent__c, result.records[i].CSS_Profile_Sent__c, result.records[i].Portfolio_Sent__c, result.records[i].Portfolio_Instructions__c, result.records[i].Outcome__c, result.records[i].Application_Type__c, result.records[i].Institution__r.Name, result.records[i].Program__c]);
     }
     printTable(applicationTable);
   }
 
+  function printStudentInfo(contactData) {
+    console.log(contactData);
+    let studentName = document.getElementById("studentName");
+    let studentAct = document.getElementById("actScore");
+    let studentSuperAct = document.getElementById("actSuperScore");    
+    let studentSat = document.getElementById("satScore");
+    let studentGpa = document.getElementById("gpa");
+    let studentWGpa = document.getElementById("wGpa");
+
+    studentName.textContent = contactData.Name;
+    studentAct.value = contactData.ACT__c;
+    studentSuperAct.value = contactData.Super_ACT__c;
+    studentSat.value = contactData.SAT__c;
+    studentWGpa.value = contactData.Weighted_GPA__c;
+    studentGpa.value = contactData.GPA__c;
+  }
+
   function printTable(array, rowOption) {
+    studentInfoBox.style.display = "block";
     backButton.style.display = "block";
     let contact = contactArray[selected];
+    printStudentInfo(contact);
     let i = 0;
     if (rowOption == "row") {
         i = array.length - 1;
@@ -297,6 +344,13 @@
       child3.checked = array[i][3]
       child3.id = "submitted" + i;
       cell3.appendChild(child3);
+
+      let cell15 = newRow.insertCell(-1);
+      let child15 = document.createElement("input");
+      child15.type = "text";
+      child15.id = "program" + i;
+      child15.value = array[i][16];
+      cell15.appendChild(child15);
 
       let cell14 = newRow.insertCell(-1);
       let child14 = document.createElement("select");
@@ -535,7 +589,6 @@
 
     let advisorItem = document.createElement("p");
     let advisorName = getAdvisor(advisorId);
-    console.log(advisorName);
     let advisorItemNode = document.createTextNode("Advisor: " + advisorName);
     advisorItem.appendChild(advisorItemNode);
     contactOption.appendChild(advisorItem);

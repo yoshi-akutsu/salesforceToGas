@@ -6,9 +6,38 @@
     <?!= include("page-css"); ?>
   </head>
   <body>
-    <button id="back" style="display:none"><</button>
+    <div id="banner">
+      <img src="https://lh3.googleusercontent.com/uUmO46OEXIPsx3xffq-YWiAS2S7Hb5HnXA2TvpM1rdYffQrDizLpcvLE_u6jWNIUX2M3DFtrElH48Jkl_lHhFmFSy_nNTe8F84AxJ7pJdnTDkKZi9-6KrXaBcJ-aYR09NiNuxg8C9A=w2400"></img>  
+      <div id="studentInfo" style="display:none">
+        <table>
+          <tr>
+            <strong id="studentName">Taro Yamada</strong>
+          </tr>
+          <tr>
+            <th>ACT</th>
+            <td><input id="actScore" type="number"></input></td>
+          </tr>
+          <tr>
+            <th>Super ACT</th>
+            <td><input id="actSuperScore" type="number"></input></td>
+          </tr>
+          <tr>
+            <th>SAT</th>
+            <td><input id="satScore" type="number"></input></td>
+          </tr>
+          <tr>
+            <th>GPA</th>
+            <td><input id="gpa" type="number"></input></td>
+          </tr>
+          <tr>
+            <th>W. GPA</th>
+            <td><input id="wGpa" type="number"></input></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    
     <div class="header">
-      <img src="https://lh3.googleusercontent.com/uUmO46OEXIPsx3xffq-YWiAS2S7Hb5HnXA2TvpM1rdYffQrDizLpcvLE_u6jWNIUX2M3DFtrElH48Jkl_lHhFmFSy_nNTe8F84AxJ7pJdnTDkKZi9-6KrXaBcJ-aYR09NiNuxg8C9A=w2400"></img>
       <div id="authenticate">
         <h3>Click here to authorize this app with Salesforce.</h3>
         <a id="auth" href="" target="_blank">Authorize</a>
@@ -26,21 +55,13 @@
     </div>
 
     <div id="resultBox"></div>
-    <div id="studentInfo" style="display: none">
-      <p>Name: </p>
-      <p>ACT: </p>
-      <p>W. GPA: </p>
-      <p>GPA: </p>
-      <p>SAT: </p>
-      <p>Superscored ACT: </p>
-
-    </div>
-  
+    <div class="table-wrapper">
       <table id="applications" class="table table-striped table-sm">
         <tr>
           <th scope="col">School</th>
           <th scope="col">Due Date</th>
           <th scope="col">Submitted</th>
+          <th scope="col">Program</th>
           <th scope="col">App Type</th>
           <th scope="col">CA Essay Done?</th>
           <th scope="col">Supp Essays Done</th>
@@ -63,23 +84,27 @@
               <button id="findSchool">Go</button>
             </div>
           </td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
+          <td><input type="date" disabled></input></td>
+          <td><input type="checkbox" disabled></input></td>
+          <td><input type="text" disabled></input></td>
+          <td><select disabled></select></td>
+          <td><input type="checkbox" disabled></input></td>
+          <td><input type="checkbox" disabled></input></td>
+          <td><input type="checkbox" disabled><input type="checkbox" disabled><input type="checkbox" disabled><input type="checkbox" disabled></input></td>
+          <td><input type="checkbox" disabled></input></td>
+          <td><input type="checkbox" disabled></input></td>
+          <td><input type="checkbox" disabled></input></td>
+          <td><input type="checkbox" disabled></input></td>
+          <td><input type="checkbox" disabled></input></td>
+          <td><input type="link" disabled></input></td>
+          <td><select disabled></select></td>
         </tr>
       </table>
+    </div>
     <div id="schoolResults"></div>
     <button id="push" style="display:none">Push to Salesforce</button>
+    <button id="back" style="display:none"><</button>
+
     <?!= include("page-js"); ?>
   </body>
 </html>

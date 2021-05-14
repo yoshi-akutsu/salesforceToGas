@@ -1,7 +1,32 @@
 <style>
+  .table-wrapper {
+    max-height: 30rem;
+    overflow: auto;
+    display:inline-block;
+  }
+  #banner {
+    height: 15%;
+  }
+  .header {
+    margin-top: 2rem;
+  }
   tr, th, td {
     font-size: .7rem;
     border: 1px solid	#909090;
+  }
+  #studentInfo {
+    float: right;
+    margin: 1rem;
+    width: 20%;
+  }
+  #studentInfo table {
+    width: 100%;
+  }
+  #studentInfo th {
+    width: 40%;
+  }
+  #studentInfo input {
+    width: 100%;
   }
   #test {
     width: 5rem;
@@ -15,6 +40,9 @@
   .table tbody tr{
     margin: auto;
     width: 50% !important; 
+  }
+  table { 
+    border-collapse: collapse;
   }
 
   #plus {
@@ -34,9 +62,9 @@
     text-align: center; 
     padding: 0px; 
   }
-  .header img {
-    max-height: 10rem;
-    margin: 2rem;
+  img {
+    max-height: 8rem;
+    margin: 1rem;
   }
   .searchBox {
     text-align: center;
