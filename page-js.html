@@ -2,9 +2,9 @@
   // Breaks when searching for school with blank query
   // Need to target search box for school upon clicking add school
   // Implement delete button
-  // Implement student summary box
   // Add data heard back from schools to SF
   
+  let errorAlert = document.getElementById("danger");
   let authLink = document.getElementById("auth");
   let authDiv = document.getElementById("authenticate");
   let searchButton = document.getElementById("searchButton");
@@ -18,6 +18,7 @@
   let schoolSearchButton = document.getElementById("findSchool");
   let schoolResults = document.getElementById("schoolResults");
   let pushToSalesforce = document.getElementById("push");
+  let pushToSheets = document.getElementById("sheets");
   let studentInfoBox = document.getElementById("studentInfo");
   let loadingDiv = document.getElementById('loading');
   let backButton = document.getElementById('back');
@@ -33,17 +34,35 @@
   searchButton.addEventListener("click", () => {
     killTheKids(resultBox);
     let searchTerm = searchBar.value;
-    google.script.run.withSuccessHandler(printResults).makeRequest(searchTerm, "search", "Contact");
+    try {
+      google.script.run.withSuccessHandler(printResults).withFailureHandler(handleError).makeRequest(searchTerm, "search", "Contact", "0123h0000006jO8AAI");
+    } catch (err) {
+      console.log(err);
+    }
   })
   
   // Cosmetic change to the new application button
   plus.addEventListener("click", () => {
     newSchoolSearchBox.style.display = "block";
     plus.style.display = "none";
+    schoolToSearch.focus();
+    schoolToSearch.select();
+  })
+
+  pushToSheets.addEventListener("click", () => {
+    let url = prompt("Please enter the URL of the spreadsheet:");
+    if (url != null) {
+      updateApplicationTable(true);
+      showSpinner();
+      google.script.run.withSuccessHandler(confirmExport).withFailureHandler(handleError).pushToSheets(url, applicationTable);
+    }
   })
 
   backButton.addEventListener("click", () => {
     backButton.style.display = "none";
+    newSchoolSearchBox.style.display = "none";
+    plus.style.display = "block";
+
     contactArray = [];
     applicationTable = [];
     document.querySelectorAll(".dataRow").forEach(row => {
@@ -57,6 +76,7 @@
     searchBox.style.display = "block";
     table.style.display = "none";
     pushToSalesforce.style.display = "none";
+    pushToSheets.style.display = "none";
   })
 
   // Calls GAS to send an API request to SF
@@ -66,13 +86,23 @@
     let schoolSearchTerm = schoolToSearch.value;
     schoolToSearch.value = "";
     showSpinner();
-    google.script.run.withSuccessHandler(printSchoolResults).makeRequest(schoolSearchTerm, "search", "Account", "0123h000000tvrfAAA");
+    try {
+      google.script.run.withSuccessHandler(printSchoolResults).withFailureHandler(handleError).makeRequest(schoolSearchTerm, "search", "Account", "0123h000000tvrfAAA");
+    } catch (err) {
+      console.log(err);
+    }
   })
 
   // Pushes data to Salesforce
   push.addEventListener("click", () => {
     updateApplicationTable();
   })
+
+  function handleError(err) {
+    errorAlert.textContent = "Something unexpected happened. Please refresh the page. If the issue persists please reach out to Yoshi with the following error message: " + err;
+    errorAlert.style.display = "block";
+    
+  }
 
   function updateContactArray() {
     contactArray[selected].ACT__c = document.getElementById("actScore").value;
@@ -83,7 +113,7 @@
   }
 
   // Updates data representation of the application table, then pushes it to the backend for updates
-  function updateApplicationTable() {
+  function updateApplicationTable(noPush, toBeDeleted) {
     for (let i = 0; i < table.rows.length - 2; i++) {
       let dueDate = document.getElementById("dueDate" + i);
       let submitted = document.getElementById("submitted" + i);
@@ -135,17 +165,32 @@
       applicationTable[i][13] = result.value;
       applicationTable[i][14] = appType.value;
       applicationTable[i][16] = program.value;
+      //console.log(toBeDeleted, i);
+      //if (toBeDeleted == i) {
+      //  applicationTable[i][17] = true;
+      //}
     }
     updateContactArray()
-    showSpinner();
-    console.log(contactArray[selected]);
-    google.script.run.withSuccessHandler(confirmSubmission).pushToSalesforce(applicationTable, contactArray[selected]);
+    if (noPush == true) {
+    }
+    else {
+      showSpinner();
+      console.log(contactArray[selected]);
+      try {
+        google.script.run.withSuccessHandler(confirmSubmission).withFailureHandler(handleError).pushToSalesforce(applicationTable,contactArray[selected]);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  }
+  
+  function confirmExport() {
+    hideSpinner();
   }
 
   function confirmSubmission(table) {
     hideSpinner();
     applicationTable = table;
-    
   }
 
   // Converts checkboxes to a string separated by semi-colons
@@ -230,6 +275,7 @@
 
   // Updates link to Salesforce Authentication
   function callback(link) {
+    authDiv.style.display = "block";
     authLink.href = link;
     authLink.addEventListener("click", () => {
       authDiv.style.display = "none";
@@ -270,7 +316,11 @@
       killTheKids(resultBox);
       searchBox.style.display = "none";
       selected = result.getAttribute("position");
-      google.script.run.withSuccessHandler(formTableData).makeRequest(result.id, "applications");
+      try {
+        google.script.run.withSuccessHandler(formTableData).withFailureHandler(handleError).makeRequest(result.id, "applications");
+      } catch (err) {
+        console.log(err);
+      }
       showSpinner();
       table.style.display = "block";
     }))
@@ -284,8 +334,6 @@
       return item;
     }
   }
-
-
 
   function formTableData(result) {
     hideSpinner();
@@ -307,9 +355,12 @@
     let studentWGpa = document.getElementById("wGpa");
 
     studentName.textContent = contactData.Name;
-    studentAct.value = contactData.ACT__c;
+    studentAct.value = contactData.Highest_ACT_Composite__c;
+    studentAct.disabled = true;
     studentSuperAct.value = contactData.Super_ACT__c;
-    studentSat.value = contactData.SAT__c;
+    studentSuperAct.disabled = true;
+    studentSat.value = contactData.Highest_SAT_Total__c;
+    studentSat.disabled = true;
     studentWGpa.value = contactData.Weighted_GPA__c;
     studentGpa.value = contactData.GPA__c;
   }
@@ -324,6 +375,9 @@
         i = array.length - 1;
       } 
     for (i; i < array.length; i++) {
+      //if (array[i][17] != undefined) {
+      //  continue;
+      //}
       let newRow = table.insertRow(i + 1);
       newRow.classList.add("dataRow");
 
@@ -543,8 +597,28 @@
       child13.value = array[i][13]
       child13.id = "result" + i;
       cell13.appendChild(child13);
+
+      // Delete button
+      //let cell16 = newRow.insertCell(-1);
+      //let child16 = document.createElement("button");
+      //child16.id = "delete" + i;
+      //child16.textContent = "X";
+      //child16.classList.add("btn-danger");
+      //child16.classList.add("btn");
+      //child16.type = "button";
+      //cell16.appendChild(child16);
     }
+
+    pushToSheets.style.display = "block";
     push.style.display = "block";
+
+    //let deleteButtons = document.querySelectorAll(".btn-danger");
+    //deleteButtons.forEach(button => {
+    //  button.addEventListener("click", () => {
+    //    deleteSchool(button.id);
+    //  })
+    //})
+
     // Checks all CA boxes or unchecks them all together
     let commonAppBoxes = document.querySelectorAll(".commonAppBox");
     commonAppBoxes.forEach(box => {
@@ -562,6 +636,15 @@
       })
     })
   }
+
+  //function deleteSchool(buttonId) {
+  //  let array = buttonId.split("");
+  //  updateApplicationTable(true, Number(array[array.length - 1]));
+  //  document.querySelectorAll(".dataRow").forEach(row => {
+  //    row.parentNode.removeChild(row);
+  //  })
+  //  printTable(applicationTable, "");
+  //}
 
   function killTheKids(div){
     while (div.firstChild) {

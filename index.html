@@ -6,6 +6,7 @@
     <?!= include("page-css"); ?>
   </head>
   <body>
+    <div class="alert alert-danger" id="danger" role="alert" style="display:none;">This is a danger alert—check it out!</div>
     <div id="banner">
       <img src="https://lh3.googleusercontent.com/uUmO46OEXIPsx3xffq-YWiAS2S7Hb5HnXA2TvpM1rdYffQrDizLpcvLE_u6jWNIUX2M3DFtrElH48Jkl_lHhFmFSy_nNTe8F84AxJ7pJdnTDkKZi9-6KrXaBcJ-aYR09NiNuxg8C9A=w2400"></img>  
       <div id="studentInfo" style="display:none">
@@ -38,7 +39,7 @@
     </div>
     
     <div class="header">
-      <div id="authenticate">
+      <div style="display: none;" id="authenticate">
         <h3>Click here to authorize this app with Salesforce.</h3>
         <a id="auth" href="" target="_blank">Authorize</a>
       <br>
@@ -46,15 +47,15 @@
     </div>
     <div class="searchBox">
       <label for="searchTerm">Find your student:</label><br>
-      <input type="text" id="searchTerm" placeholder="Jane Doe"></input>
-      <button id="searchButton" onClick="showSpinner()">Search</button>
+      <input class="form-control" type="text" id="searchTerm" placeholder="Jane Doe"></input>
+      <button type="button" class="btn btn-primary" id="searchButton" onClick="showSpinner()">Search</button>
     </div>
 
     <div class="container"> 
       <div id="loading" class="loading" onClick="hideSpinner()">Loading&#8230;</div>
     </div>
 
-    <div id="resultBox"></div>
+    <div id="resultBox" class="container"></div>
     <div class="table-wrapper">
       <table id="applications" class="table table-striped table-sm">
         <tr>
@@ -77,11 +78,11 @@
         <tr>
           <td> 
             <div id="plus">
-              <button>New Application</button>
+              <button type="button" class="btn btn-dark">New Application</button>
             </div>
             <div id="schoolSearch" style="display:none">
-              <input id="schoolName" type="text" placeholder="Blue Mountain State U"></input>
-              <button id="findSchool">Go</button>
+              <input style="display: inline-block;" id="schoolName" type="text" placeholder="Blue Mountain State U"></input>
+              <button style="display: inline-block;" id="findSchool">Go</button>
             </div>
           </td>
           <td><input type="date" disabled></input></td>
@@ -101,9 +102,10 @@
         </tr>
       </table>
     </div>
-    <div id="schoolResults"></div>
-    <button id="push" style="display:none">Push to Salesforce</button>
-    <button id="back" style="display:none"><</button>
+    <div id="schoolResults" class="container"></div>
+    <button type="button" class="btn btn-success" id="sheets" style="display:none">Export to Sheets</button>
+    <button type="button" class="btn btn-primary" id="push" style="display:none">Push to Salesforce</button>
+    <button class="btn btn-light" id="back" style="display:none"><</button>
 
     <?!= include("page-js"); ?>
   </body>

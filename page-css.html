@@ -3,6 +3,7 @@
     max-height: 30rem;
     overflow: auto;
     display:inline-block;
+    width: 100%;
   }
   #banner {
     height: 15%;
@@ -41,6 +42,13 @@
     margin: auto;
     width: 50% !important; 
   }
+  tbody {
+    display: table;
+    margin: 0;
+  }
+  tr {
+    width: 100%;
+  }
   table { 
     border-collapse: collapse;
   }
@@ -49,6 +57,11 @@
     border: none;
   }
   #push {
+    margin: 1rem;
+    float: right;
+  }
+  #sheets {
+    margin: 1rem;
     float: right;
   }
   #applications {
@@ -62,6 +75,10 @@
     text-align: center; 
     padding: 0px; 
   }
+  #searchTerm {
+    width: 20%;
+    display: inline-block;
+  }
   img {
     max-height: 8rem;
     margin: 1rem;
@@ -70,13 +87,16 @@
     text-align: center;
     margin-top: 2rem;
     display: none;
+    padding: 1rem;
   }
   .contact {
-    border: 1px solid black;
+    border: 1px solid #909090;
+    padding: 1rem;
   }
 
   .schoolItem {
-    border: 1px solid black;    
+    border: 1px solid #909090;    
+    padding: 1rem;
   }
 
   /* Absolute Center Spinner */
