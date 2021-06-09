@@ -216,7 +216,7 @@ function removeSpaces(text) {
 
 function pushToSheets(url, applicationTable) {
   let array = url.split("/");
-  let spreadsheetId;
+  let spreadsheetId; 
   for (let i = 0; i < array.length; i++) {
     if (array[i] == "d") {
       spreadsheetId = array[i + 1];
@@ -229,7 +229,8 @@ function pushToSheets(url, applicationTable) {
     if (sheets[i].getName().includes("hecklist")) {
       sheet = sheets[i];
       break;
-    } else {
+    }
+    else {
       sheet = null;
     }
   }
@@ -250,50 +251,31 @@ function pushToSheets(url, applicationTable) {
       }
     }
   }
-  sheet
-    .getRange(startingRow, 1, 1, 15)
-    .setValues([
-      [
-        "School",
-        "Deadline",
-        "Submitted",
-        "Program",
-        "App Type",
-        "CA Essay Done",
-        "Supp Essays Done",
-        "Testing",
-        "Transcripts",
-        "LORs",
-        "FAFSA",
-        "CSS",
-        "Portfolio Done",
-        "Portfolio Link",
-        "Result",
-      ],
-    ]);
+  sheet.getRange(startingRow - 1, 1, 1, 15).setValues([["", "", "Apps", "", "", "Essays", "", "Testing", "Guidance", "", "Financial Aid", "", "Portfolio", "", ""]]).clearFormat().setFontWeight("bold");
+  sheet.getRange(startingRow, 1, 1, 15).setValues([["School", "Deadline", "Submitted", "Program", "App Type", "CA Essay Done", "Supp Essays Done", "Testing", "Transcripts", "LORs", "FAFSA", "CSS", "Portfolio Done", "Portfolio Link", "Result"]]).clearFormat().setFontWeight("bold");
 
-  for (let i = 0; i < applicationTable.length; i++) {
-    sheet
-      .getRange(startingRow + i + 1, 1, 1, 15)
-      .setValues([
-        [
-          applicationTable[i][15],
-          applicationTable[i][2],
-          applicationTable[i][3],
-          applicationTable[i][16],
-          applicationTable[i][14],
-          applicationTable[i][4],
-          applicationTable[i][5],
-          applicationTable[i][6],
-          applicationTable[i][7],
-          applicationTable[i][8],
-          applicationTable[i][9],
-          applicationTable[i][10],
-          applicationTable[i][11],
-          applicationTable[i][12],
-          applicationTable[i][13],
-        ],
-      ]);
+  for (let i = 0 ; i < applicationTable.length; i++) {
+    sheet.getRange(startingRow + i + 1, 1, 1, 15).setValues([[applicationTable[i][15], applicationTable[i][2], applicationTable[i][3], applicationTable[i][16], applicationTable[i][14], applicationTable[i][4], applicationTable[i][5], applicationTable[i][6], applicationTable[i][7], applicationTable[i][8], applicationTable[i][9], applicationTable[i][10], applicationTable[i][11], applicationTable[i][12], applicationTable[i][13]]]).clearFormat().setHorizontalAlignment("left");
+  }
+  let updatedSpreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  let updatedSheets = updatedSpreadsheet.getSheets();
+  let updatedSheet;
+  for (let i = 0; i < sheets.length; i++) {
+    if (updatedSheets[i].getName().includes("hecklist")) {
+      updatedSheet = updatedSheets[i];
+      break;
+    }
+  }
+  let updatedValues = updatedSheet.getDataRange().getValues();
+  for (let i = 0; i < updatedValues.length; i++) {
+    for (let j = 0; j < updatedValues[i].length; j++) {
+      if (updatedValues[i][j] === true || updatedValues[i][j] === false) {
+        let cell = updatedSheet.getRange(i + 1, j + 1);
+        let rule = SpreadsheetApp.newDataValidation().requireCheckbox().build();
+        cell.setDataValidation(rule);
+        cell.setHorizontalAlignment("center")
+      }
+    }
   }
 }
 
