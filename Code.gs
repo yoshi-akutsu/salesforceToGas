@@ -230,11 +230,11 @@ function pushToSheets(url, applicationTable) {
       }
     }
   }
-  sheet.getRange(startingRow - 1, 1, 1, 15).setValues([["", "", "Apps", "", "", "Essays", "", "Testing", "Guidance", "", "Financial Aid", "", "Portfolio", "", ""]]).clearFormat().setFontWeight("bold");
-  sheet.getRange(startingRow, 1, 1, 15).setValues([["School", "Deadline", "Submitted", "Program", "App Type", "CA Essay Done", "Supp Essays Done", "Testing", "Transcripts", "LORs", "FAFSA", "CSS", "Portfolio Done", "Portfolio Link", "Result"]]).clearFormat().setFontWeight("bold");
+  sheet.getRange(startingRow - 1, 1, 1, 17).setValues([["", "", "Apps", "", "", "Essays", "", "", "Testing", "Guidance", "", "Financial Aid", "", "Portfolio", "", "", ""]]).clearFormat().setFontWeight("bold");
+  sheet.getRange(startingRow, 1, 1, 17).setValues([["School", "Deadline", "Submitted", "Program", "App Type", "CA Essay Done", "Supp Essays Done", "Special Applications Done", "Testing", "Transcripts", "LORs", "FAFSA", "CSS", "Portfolio Done", "Portfolio Link", "Result", "Notes"]]).clearFormat().setFontWeight("bold");
 
   for (let i = 0 ; i < applicationTable.length; i++) {
-    sheet.getRange(startingRow + i + 1, 1, 1, 15).setValues([[applicationTable[i][15], applicationTable[i][2], applicationTable[i][3], applicationTable[i][16], applicationTable[i][14], applicationTable[i][4], applicationTable[i][5], applicationTable[i][6], applicationTable[i][7], applicationTable[i][8], applicationTable[i][9], applicationTable[i][10], applicationTable[i][11], applicationTable[i][12], applicationTable[i][13]]]).clearFormat().setHorizontalAlignment("left");
+    sheet.getRange(startingRow + i + 1, 1, 1, 17).setValues([[applicationTable[i][15], applicationTable[i][2], applicationTable[i][3], applicationTable[i][16], applicationTable[i][14], applicationTable[i][4], applicationTable[i][5], applicationTable[i][17], applicationTable[i][6], applicationTable[i][7], applicationTable[i][8], applicationTable[i][9], applicationTable[i][10], applicationTable[i][11], applicationTable[i][12], applicationTable[i][13], applicationTable[i][18]]]).clearFormat().setHorizontalAlignment("left");
   }
   let updatedSpreadsheet = SpreadsheetApp.openById(spreadsheetId);
   let updatedSheets = updatedSpreadsheet.getSheets();
