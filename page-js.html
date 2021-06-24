@@ -135,6 +135,9 @@
       let portfolio = document.getElementById("portfolio" + i);
       let link = document.getElementById("link" + i);
       let result = document.getElementById("result" + i);
+      let specialApps = document.getElementById("specials" + i);
+      let notes = document.getElementById("notes" + i)
+      
       //0 [result.records[i].Id,
       //1 result.records[i].Institution__c,
       //2  result.records[i].Due_Date__c,
@@ -165,10 +168,10 @@
       applicationTable[i][13] = result.value;
       applicationTable[i][14] = appType.value;
       applicationTable[i][16] = program.value;
-      //console.log(toBeDeleted, i);
-      //if (toBeDeleted == i) {
-      //  applicationTable[i][17] = true;
-      //}
+
+      applicationTable[i][17] = specialApps.checked;
+      applicationTable[i][18] = notes.value;
+      
     }
     updateContactArray()
     if (noPush == true) {
@@ -240,7 +243,8 @@
     let resultsList = document.querySelectorAll(".schoolItem").forEach(school => {
       school.addEventListener("click", () => {
         killTheKids(school);
-        applicationTable.push(["",school.id,"","","","","","","","","","","","", "", school.getAttribute("name"), ""]);
+        // ADD NEW ITEMS TO APPLICATION TABLE HERE
+        applicationTable.push(["",school.id,"","","","","","","","","","","","", "", school.getAttribute("name"), "", "", ""]);
         killTheKids(schoolResults);
         printTable(applicationTable, "row")
         studentInfoBox.style.display = "block";
@@ -339,8 +343,9 @@
     hideSpinner();
     let contact = contactArray[selected];
     for (let i = 0; i < result.records.length; i++) {
+      // Add new SF fields here
       applicationTable.push(
-        [result.records[i].Id, result.records[i].Institution__c, result.records[i].Due_Date__c, result.records[i].Submitted__c, contactArray[selected].Completed_Common_App_Essay__c, result.records[i].Supplemental_Essays_Completed__c, checkNull(result.records[i].Testing_Sent__c), result.records[i].Transcripts_Sent__c, result.records[i].LOR_Sent__c, result.records[i].FAFSA_Sent__c, result.records[i].CSS_Profile_Sent__c, result.records[i].Portfolio_Sent__c, result.records[i].Portfolio_Instructions__c, result.records[i].Outcome__c, result.records[i].Application_Type__c, result.records[i].Institution__r.Name, result.records[i].Program__c]);
+        [result.records[i].Id, result.records[i].Institution__c, result.records[i].Due_Date__c, result.records[i].Submitted__c, contactArray[selected].Completed_Common_App_Essay__c, result.records[i].Supplemental_Essays_Completed__c, checkNull(result.records[i].Testing_Sent__c), result.records[i].Transcripts_Sent__c, result.records[i].LOR_Sent__c, result.records[i].FAFSA_Sent__c, result.records[i].CSS_Profile_Sent__c, result.records[i].Portfolio_Sent__c, result.records[i].Portfolio_Instructions__c, result.records[i].Outcome__c, result.records[i].Application_Type__c, result.records[i].Institution__r.Name, result.records[i].Program__c, result.records[i].Special_Applications_Complete__c, result.records[i].Notes__c]);
     }
     printTable(applicationTable);
   }
@@ -462,6 +467,14 @@
       child5.checked = array[i][5]
       child5.id = "supplementals" + i;
       cell5.appendChild(child5);
+
+      let cell17 = newRow.insertCell(-1);
+      let child17 = document.createElement("input");
+      child17.type = "checkbox";
+      child17.checked = array[i][17]
+      child17.id = "specials" + i;
+      cell17.appendChild(child17);
+
 
       let cell6 = newRow.insertCell(-1);
       let child6 = document.createElement("div");
@@ -598,15 +611,12 @@
       child13.id = "result" + i;
       cell13.appendChild(child13);
 
-      // Delete button
-      //let cell16 = newRow.insertCell(-1);
-      //let child16 = document.createElement("button");
-      //child16.id = "delete" + i;
-      //child16.textContent = "X";
-      //child16.classList.add("btn-danger");
-      //child16.classList.add("btn");
-      //child16.type = "button";
-      //cell16.appendChild(child16);
+      let cell18 = newRow.insertCell(-1);
+      let child18 = document.createElement("input");
+      child18.type = "text";
+      child18.value = array[i][18]
+      child18.id = "notes" + i;
+      cell18.appendChild(child18);
     }
 
     pushToSheets.style.display = "block";
